@@ -20,7 +20,7 @@ jobs:
 
       - run:
           name: List files on directory /tmp/workspace/build
-          comand: ls -l /tmp/workspace/build
+          command: ls -l /tmp/workspace/build
 
       - run:
           name: Copy artifact
