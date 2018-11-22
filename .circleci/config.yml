@@ -42,7 +42,7 @@ jobs:
             export GIT_COMMIT=$(git rev-parse --short HEAD)
             docker login -u $DOCKERHUB_LOGIN -p $DOCKERHUB_PASSWORD
             docker push stockanalyses/webinterface:armhf-$GIT_COMMIT
-            sed -i "s|{image}|downloader|g" manifest.yaml
+            sed -i "s|{image}|webinterface|g" manifest.yaml
             sed -i "s|{tag}|armhf-$GIT_COMMIT|g" manifest.yaml
             sed -i "s|{majmin}|armhf-$GIT_COMMIT|g" manifest.yaml
             ./manifest-tool-linux-amd64 push from-spec manifest.yaml
