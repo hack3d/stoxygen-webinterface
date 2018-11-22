@@ -1,0 +1,11 @@
+# This is for dev
+version: '3'
+services:
+  sto2-wiremock:
+    image: rodolpheche/wiremock
+    ports:
+      - "8443:8443"
+      - "8083:8080"
+    command: --https-port 8443
+    volumes:
+      - $PWD/wiremock-docker/stubs:/home/wiremock

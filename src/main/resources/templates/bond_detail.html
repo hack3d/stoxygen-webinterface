@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <title>Stoxygen - Indicator</title>
+    <link rel="stylesheet" href="/bootstrap-4.1.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/sticky-footer-navbar/sticky-footer-navbar.css" />
+    <link rel="stylesheet" href="/font_awesome-5.1.0/css/fontawesome-all.min.css" />
+    <link rel="stylesheet" href="/dygraphs/dygraphs.css" />
+    <link rel="stylesheet" href="/dygraphs/custom-sto2.css" />
+    <script src="/jquery/jquery-3.3.1.min.js"></script>
+    <script src="/dygraphs/dygraph.min.js"></script>
+    <script src="/dygraphs/synchronizer.js"></script>
+    <script th:inline="javascript">
+    /*<![CDATA[*/
+
+        // Convert milliseconds to date
+        function EpochToDate(epoch) {
+            if(epoch < 10000000000)
+                epoch *= 1000; // convert to milliseconds (Epoch is usually expressed in seconds, but Javascript uses milliseconds)
+            var epoch = epoch + (new Date().getTimezoneOffset() * -1); //for timeZone
+            return new Date(epoch);
+        }
+
+        $(document).ready(function() {
+            var gs = [];
+
+            // Draw chart for macd data
+            function drawMacdChart() {
+                var indicator_url = [[${indicator_url}]];
+                var isin = [[${isin}]];
+
+                var jsonData = $.ajax({
+                    url: indicator_url + '/api/v1/macdData/isin/' + isin + '/aggregate/1min',
+                    type: "GET",
+                    dataType: "json"
+                }).done(function (results) {
+                    var data = [];
+                    results.forEach(function(packet) {
+                        data.push([EpochToDate(packet.timestamp), parseFloat(packet.macdDataPoint)]);
+                    });
+
+                    gs.push(new Dygraph(document.getElementById("macd"), data, {
+                        labels: ["x", "MACD"],
+                        rollPeriod: 14
+                    }));
+                });
+            }
+
+            // Draw chart for bond data
+            function drawLineChart() {
+                var downloader_url = [[${downloader_url}]];
+                var isin = [[${isin}]];
+
+                var jsonData = $.ajax({
+                    url: downloader_url + '/api/v1/aggregatedData/1min/exchange/btsp/isin/' + isin + '/latestTimestamp/123456890',
+                    type: "GET",
+                    dataType: "json"
+                }).done(function (results) {
+
+                    // Split
+                    var data = [];
+                    results.forEach(function(packet) {
+                        data.push([EpochToDate(packet.insertTimestamp), parseFloat(packet.close)]);
+                    });
+
+                    gs.push(new Dygraph(document.getElementById("graphdiv4"), data, {
+                        labels: ["x", isin],
+                        rollPeriod: 14
+                    }));
+                });
+            }
+
+            drawLineChart();
+            drawMacdChart();
+            var sync = Dygraph.synchronize(gs);
+            synch.deatch();
+            sync = Dygrapgh.synchonize(gs, {
+                zoom: true,
+                selection: true
+            });
+        });
+        console.log("End drawing line chart.");
+        /*]]>*/
+    </script>
+</head>
+<body>
+<header>
+    <th:block layout:replace="fragments/navigation" />
+</header>
+<main class="container" role="main">
+    <h2 th:text="${title}">Text...</h2>
+    <div class="chart-container">
+        <div id="graphdiv4" class="chart"></div>
+        <div id="macd" class="chart"></div>
+    </div>
+
+</main>
+
+<footer class="footer">
+    <div class="container">
+        (c) 2018 Stoxygen GmbH
+    </div>
+</footer>
+<script src="/bootstrap-4.1.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
