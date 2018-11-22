@@ -14,8 +14,10 @@ jobs:
     working_directory: ~/repo
     steps:
       - checkout
+
       - attach_workspace:
           at: /tmp/workspace
+
       - run:
           name: List files on directory /tmp/workspace/build
           comand: ls -l /tmp/workspace/build
@@ -25,11 +27,13 @@ jobs:
           command: |
             mkdir -p ~/repo/build
             cp /tmp/workspace/build/*.jar ~/repo/build
+
       - run:
           name: Build Docker image
           command: |
             export GIT_COMMIT=$(git rev-parse --short HEAD)
             docker build -t stockanalyses/webinterface:armhf-$GIT_COMMIT -f Dockerfile.arm32v7 .
+
       - run:
           name: Push to DockerHub
           command: |
@@ -42,6 +46,7 @@ jobs:
             sed -i "s|{tag}|armhf-$GIT_COMMIT|g" manifest.yaml
             sed -i "s|{majmin}|armhf-$GIT_COMMIT|g" manifest.yaml
             ./manifest-tool-linux-amd64 push from-spec manifest.yaml
+
   docker_snapshot_amd64:
     <<: *defaults
     machine: true
@@ -61,41 +66,49 @@ jobs:
           command: |
             mkdir -p ~/repo/build
             cp /tmp/workspace/build/*.jar ~/repo/build
+
       - run:
           name: Build Docker image
           command: |
             export GIT_COMMIT=$(git rev-parse --short HEAD)
             docker build -t stockanalyses/webinterface:$GIT_COMMIT .
+
       - run:
           name: Push to DockerHub
           command: |
             export GIT_COMMIT=$(git rev-parse --short HEAD)
             docker login -u $DOCKERHUB_LOGIN -p $DOCKERHUB_PASSWORD
             docker push stockanalyses/webinterface:$GIT_COMMIT
+
   publish_release:
     <<: *defaults
     machine: true
     working_directory: ~/repo
     steps:
       - checkout
+
       - attach_workspace:
           at: /tmp/workspace
+
       - run:
           name: Copy artifact
           command: |
             mkdir -p ~/repo/build
             cp /tmp/workspace/build/*.jar ~/repo/build
+
       - run:
           name: Build Docker image
           command: |
             export GIT_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
             docker build -t stockanalyses/webinterface:$GIT_TAG .
+
       - run:
           name: Push to DockerHub
           command: |
             export GIT_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
             docker login -u $DOCKERHUB_LOGIN -p $DOCKERHUB_PASSWORD
             docker push stockanalyses/webinterface:$GIT_TAG
+
   build_release:
     <<: *defaults
     docker:
@@ -145,6 +158,7 @@ jobs:
           root: ~/repo
           paths:
           - build/*
+
   build_snapshot:
     <<: *defaults
     docker:
